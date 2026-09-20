@@ -12,7 +12,9 @@ export default function App() {
   const [authed, setAuthed] = useState(() => {
     return localStorage.getItem("admin_authed") === "true";
   });
-const [page, setPage] = useState("upload");
+const [page, setPage] = useState(() => {
+    return localStorage.getItem("admin_page") || "paid-notes";
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (!authed) {
@@ -39,7 +41,7 @@ return (
       <Sidebar
         activePage={page}
         isOpen={sidebarOpen}
-        onNavigate={(key) => { setPage(key); setSidebarOpen(false); }}
+        onNavigate={(key) => { setPage(key); localStorage.setItem("admin_page", key); setSidebarOpen(false); }}
         onLogout={() => {
           localStorage.removeItem("admin_authed");
           setAuthed(false);
