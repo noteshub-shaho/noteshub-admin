@@ -5,6 +5,7 @@ import CloudinaryManager from "./pages/CloudinaryManager";
 import SupabaseManager from "./pages/SupabaseManager";
 import Sidebar from "./components/Sidebar";
 import Search from "./pages/Search";
+import PaidNotesManager from "./pages/PaidNotesManager";
 import "./pages/pages.css";
 
 export default function App() {
@@ -27,6 +28,7 @@ const renderPage = () => {
     if (page === "cloudinary") return <CloudinaryManager />;
     if (page === "supabase") return <SupabaseManager />;
     if (page === "search") return <Search />;
+    if (page === "paid-notes") return <PaidNotesManager />;
     return <AdminPanel />;
   };
 return (
