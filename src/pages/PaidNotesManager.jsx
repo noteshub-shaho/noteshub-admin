@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import "./pages.css";
 
 const API = import.meta.env.VITE_API_URL;
-const ADMIN_HEADERS = {
+const getAdminHeaders = () => ({
   "Content-Type": "application/json",
-  username: import.meta.env.VITE_ADMIN_USERNAME,
-  password: import.meta.env.VITE_ADMIN_PASSWORD,
-};
+  username: localStorage.getItem("admin_username") || "",
+  password: localStorage.getItem("admin_password") || "",
+});
 
 const UNIVERSITIES = ["mu", "msbte"];
 const SEMESTERS = ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6"];
@@ -83,7 +83,7 @@ function PaidNotesList() {
   const fetchConfigs = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/paid-notes/admin/list`, { headers: ADMIN_HEADERS });
+      const res = await fetch(`${API}/api/paid-notes/admin/list`, { headers: getAdminHeaders() });
       const data = await res.json();
       if (data.success) setConfigs(data.configs);
     } catch {
@@ -100,7 +100,7 @@ function PaidNotesList() {
     try {
       const res = await fetch(`${API}/api/paid-notes/admin/delete/${encodeURIComponent(noteKey)}`, {
         method: "DELETE",
-        headers: ADMIN_HEADERS,
+        headers: getAdminHeaders(),
       });
       const data = await res.json();
       if (data.success) {
@@ -118,7 +118,7 @@ function PaidNotesList() {
     try {
       const res = await fetch(`${API}/api/paid-notes/admin/update/${encodeURIComponent(config.noteKey)}`, {
         method: "PUT",
-        headers: ADMIN_HEADERS,
+        headers: getAdminHeaders(),
         body: JSON.stringify({ isEnabled: !config.isEnabled }),
       });
       const data = await res.json();
@@ -268,7 +268,7 @@ function PaidNoteForm({ initial, onClose, onSaved, onError }) {
         : `${API}/api/paid-notes/admin/create`;
       const method = isEdit ? "PUT" : "POST";
 
-      const res = await fetch(url, { method, headers: ADMIN_HEADERS, body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers: getAdminHeaders(), body: JSON.stringify(body) });
       const data = await res.json();
       if (data.success) {
         onSaved();
@@ -375,7 +375,7 @@ function PurchasesList() {
       const url = filterKey.trim()
         ? `${API}/api/paid-notes/admin/purchases?noteKey=${encodeURIComponent(filterKey.trim())}`
         : `${API}/api/paid-notes/admin/purchases`;
-      const res = await fetch(url, { headers: ADMIN_HEADERS });
+      const res = await fetch(url, { headers: getAdminHeaders() });
       const data = await res.json();
       if (data.success) setPurchases(data.purchases);
       else setError(data.message);
@@ -471,7 +471,7 @@ function DeviceReset() {
     try {
       const res = await fetch(`${API}/api/paid-notes/admin/reset-device`, {
         method: "POST",
-        headers: ADMIN_HEADERS,
+        headers: getAdminHeaders(),
         body: JSON.stringify({ userId: userId.trim(), noteKey: noteKey.trim() }),
       });
       const data = await res.json();

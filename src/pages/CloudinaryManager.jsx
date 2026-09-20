@@ -52,10 +52,10 @@ const UploadIcon = () => (
   </svg>
 );
 
-const HEADERS = {
-  username: import.meta.env.VITE_ADMIN_USERNAME,
-  password: import.meta.env.VITE_ADMIN_PASSWORD,
-};
+const getHeaders = () => ({
+  username: localStorage.getItem("admin_username") || "",
+  password: localStorage.getItem("admin_password") || "",
+});
 
 const DeleteModal = ({ name, onCancel, onConfirm }) => (
   <div className="modal-overlay">
@@ -97,7 +97,7 @@ const [uploadError, setUploadError] = useState("");
     setLoading(true);
     try {
       const params = path ? `?folder=${encodeURIComponent(path)}` : "";
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/cloudinary/files${params}`, { headers: HEADERS });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/cloudinary/files${params}`, { headers: getHeaders() });
       const data = await res.json();
       if (data.success) {
         setFolders(data.folders || []);
@@ -140,7 +140,7 @@ const [uploadError, setUploadError] = useState("");
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/cloudinary/file`, {
         method: "DELETE",
-        headers: { ...HEADERS, "Content-Type": "application/json" },
+        headers: { ...getHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({ public_id: publicId }),
       });
       const data = await res.json();
@@ -173,7 +173,7 @@ const [uploadError, setUploadError] = useState("");
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/upload`, {
         method: "POST",
-        headers: HEADERS,
+        headers: getHeaders(),
         body: formData,
       });
       const data = await res.json();
@@ -210,7 +210,7 @@ const [uploadError, setUploadError] = useState("");
         const newPath = folderPath ? `${folderPath}/${trimmed}` : trimmed;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/cloudinary/folder`, {
           method: "POST",
-          headers: { ...HEADERS, "Content-Type": "application/json" },
+          headers: { ...getHeaders(), "Content-Type": "application/json" },
           body: JSON.stringify({ path: newPath }),
         });
         const data = await res.json();
@@ -219,7 +219,7 @@ const [uploadError, setUploadError] = useState("");
         const oldPath = folderPath ? `${folderPath}/${folderModal.name}` : folderModal.name;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/cloudinary/folder`, {
           method: "PUT",
-          headers: { ...HEADERS, "Content-Type": "application/json" },
+          headers: { ...getHeaders(), "Content-Type": "application/json" },
           body: JSON.stringify({ oldPath, newName: trimmed }),
         });
         const data = await res.json();
@@ -228,7 +228,7 @@ const [uploadError, setUploadError] = useState("");
         const targetPath = folderPath ? `${folderPath}/${folderModal.name}` : folderModal.name;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/cloudinary/folder`, {
           method: "DELETE",
-          headers: { ...HEADERS, "Content-Type": "application/json" },
+          headers: { ...getHeaders(), "Content-Type": "application/json" },
           body: JSON.stringify({ path: targetPath }),
         });
         const data = await res.json();

@@ -35,6 +35,8 @@ const Login = ({ onLogin }) => {
       });
       const data = await res.json();
       if (data.success) {
+        localStorage.setItem("admin_username", form.username);
+        localStorage.setItem("admin_password", form.password);
         onLogin();
       } else {
         setError(data.message || "Invalid email or password");

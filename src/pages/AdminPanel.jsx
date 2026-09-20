@@ -52,8 +52,8 @@ const AdminPanel = () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/upload`, {
         method: "POST",
         headers: {
-          username: import.meta.env.VITE_ADMIN_USERNAME,
-          password: import.meta.env.VITE_ADMIN_PASSWORD,
+          username: localStorage.getItem("admin_username") || "",
+          password: localStorage.getItem("admin_password") || "",
         },
         body: formData,
       });
