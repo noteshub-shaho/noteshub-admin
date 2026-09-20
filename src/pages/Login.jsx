@@ -24,14 +24,23 @@ const Login = ({ onLogin }) => {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const validUser = import.meta.env.VITE_ADMIN_USERNAME;
-    const validPass = import.meta.env.VITE_ADMIN_PASSWORD;
-    if (form.username === validUser && form.password === validPass) {
-      onLogin();
-    } else {
-      setError("Invalid email or password");
+    setError("");
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: form.username, password: form.password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onLogin();
+      } else {
+        setError(data.message || "Invalid email or password");
+      }
+    } catch {
+      setError("Server error. Please try again.");
     }
   };
 
