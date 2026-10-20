@@ -6,6 +6,7 @@ import SupabaseManager from "./pages/SupabaseManager";
 import Sidebar from "./components/Sidebar";
 import Search from "./pages/Search";
 import PaidNotesManager from "./pages/PaidNotesManager";
+import DeviceRecovery from "./pages/DeviceRecovery";
 import "./pages/pages.css";
 
 export default function App() {
@@ -31,6 +32,7 @@ const renderPage = () => {
     if (page === "supabase") return <SupabaseManager />;
     if (page === "search") return <Search />;
     if (page === "paid-notes") return <PaidNotesManager />;
+    if (page === "recovery") return <DeviceRecovery />;
     return <AdminPanel />;
   };
 return (
