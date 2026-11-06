@@ -191,6 +191,27 @@ function PaidNotesList() {
                   <td>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                       <button className="icon-btn" title="Edit" onClick={() => { setEditTarget(c); setShowForm(true); setError(""); setSuccess(""); }}><EditIcon /></button>
+                      <button
+                        className="icon-btn"
+                        title={c.isImportant ? "Unmark Important" : "Mark as Important"}
+                        style={{ color: c.isImportant ? "#f59e0b" : "#94a3b8" }}
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API}/api/paid-notes/admin/update/${encodeURIComponent(c.noteKey)}`, {
+                              method: "PUT",
+                              headers: getAdminHeaders(),
+                              body: JSON.stringify({ isImportant: !c.isImportant }),
+                            });
+                            const data = await res.json();
+                            if (data.success) { setSuccess(`Marked as ${!c.isImportant ? "Important" : "Not Important"}.`); fetchConfigs(); }
+                            else setError(data.message);
+                          } catch { setError("Failed."); }
+                        }}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill={c.isImportant ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      </button>
                       <button className="icon-btn" title={c.isEnabled ? "Disable" : "Enable"} onClick={() => handleToggle(c)}>
                         {c.isEnabled ? (
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
