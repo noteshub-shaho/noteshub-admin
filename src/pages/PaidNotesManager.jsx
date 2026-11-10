@@ -45,6 +45,90 @@ const UsersIcon = () => (
 
 const TABS = ["Paid Notes", "Purchases", "Device Reset"];
 
+function ConfirmModeModal({ config, onClose, onConfirm }) {
+  const [loading, setLoading] = useState(false);
+  const nextMode = !config.isFreeMode;
+  const label = nextMode ? "Free" : "Paid";
+
+  const handleConfirm = () => {
+    setLoading(true);
+    onConfirm();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose(); }}>
+      <div className="modal-card">
+        <div className="modal-icon" style={{ background: nextMode ? "#eff6ff" : "#fdf4ff", color: nextMode ? "#2563eb" : "#9333ea" }}>
+          {nextMode ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              <line x1="8" y1="11" x2="8" y2="11"/><circle cx="12" cy="16" r="1" fill="currentColor"/>
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          )}
+        </div>
+        <h3 className="modal-title">Switch to {label} Mode?</h3>
+        <p className="modal-body">
+          <strong>{config.title}</strong> will be switched to{" "}
+          <strong>{label} mode</strong>.{" "}
+          {nextMode
+            ? "Users will be able to access and download these notes for free, like regular subjects."
+            : "Users will need to purchase these notes before accessing them. Existing purchases remain valid."}
+        </p>
+        <div className="modal-actions">
+          <button className="modal-btn modal-btn--cancel" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
+          <button
+            className="modal-btn modal-btn--confirm"
+            style={{ background: nextMode ? "#2563eb" : "#9333ea" }}
+            onClick={handleConfirm}
+            disabled={loading}
+          >
+            {loading ? "Switching..." : `Switch to ${label}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Toast({ message, type, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <div style={{
+      position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 2000,
+      background: type === "success" ? "#f0fdf4" : "#fef2f2",
+      border: `1px solid ${type === "success" ? "#86efac" : "#fca5a5"}`,
+      color: type === "success" ? "#166534" : "#dc2626",
+      borderRadius: "12px", padding: "0.85rem 1.25rem",
+      fontWeight: 600, fontSize: "0.875rem",
+      boxShadow: "0 8px 24px rgba(15,23,42,0.12)",
+      display: "flex", alignItems: "center", gap: "8px",
+      animation: "modalIn 0.2s ease",
+      maxWidth: "320px",
+    }}>
+      {type === "success" ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      )}
+      {message}
+    </div>
+  );
+}
+
 export default function PaidNotesManager() {
   const [tab, setTab] = useState("Paid Notes");
 
@@ -79,6 +163,8 @@ function PaidNotesList() {
   const [editTarget, setEditTarget] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [modeConfirmTarget, setModeConfirmTarget] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const fetchConfigs = async () => {
     setLoading(true);
@@ -113,7 +199,6 @@ function PaidNotesList() {
       setError("Delete failed.");
     }
   };
-
   const handleToggle = async (config) => {
     try {
       const res = await fetch(`${API}/api/paid-notes/admin/update/${encodeURIComponent(config.noteKey)}`, {
@@ -132,6 +217,33 @@ function PaidNotesList() {
       setError("Toggle failed.");
     }
   };
+  const handleModeToggle = (config) => {
+    setModeConfirmTarget(config);
+  };
+
+  const handleModeConfirm = async (config) => {
+    const nextMode = !config.isFreeMode;
+    const label = nextMode ? "Free" : "Paid";
+    try {
+      const res = await fetch(`${API}/api/paid-notes/admin/update/${encodeURIComponent(config.noteKey)}`, {
+        method: "PUT",
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ isFreeMode: nextMode }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setModeConfirmTarget(null);
+        setToast({ message: `Switched to ${label} mode successfully.`, type: "success" });
+        fetchConfigs();
+      } else {
+        setModeConfirmTarget(null);
+        setToast({ message: data.message || "Mode switch failed.", type: "error" });
+      }
+    } catch {
+      setModeConfirmTarget(null);
+      setToast({ message: "Mode switch failed.", type: "error" });
+    }
+  };
 
   return (
     <div>
@@ -144,7 +256,6 @@ function PaidNotesList() {
       </div>
 
       {error && <p className="form-error" style={{ marginBottom: "1rem" }}>{error}</p>}
-      {success && <p className="form-success" style={{ marginBottom: "1rem" }}>{success}</p>}
 
       {showForm && (
         <PaidNoteForm
@@ -168,6 +279,7 @@ function PaidNotesList() {
                 <th>Title</th>
                 <th>Price</th>
                 <th>Status</th>
+                <th>Mode</th>
                 <th>Purchases</th>
                 <th>Actions</th>
               </tr>
@@ -187,31 +299,24 @@ function PaidNotesList() {
                       {c.isEnabled ? "Active" : "Disabled"}
                     </span>
                   </td>
+                  <td>
+                    <button
+                      onClick={() => handleModeToggle(c)}
+                      style={{
+                        padding: "2px 10px", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 700,
+                        border: "none", cursor: "pointer",
+                        background: c.isFreeMode ? "#eff6ff" : "#fdf4ff",
+                        color: c.isFreeMode ? "#2563eb" : "#9333ea",
+                      }}
+                      title={c.isFreeMode ? "Switch to Paid" : "Switch to Free"}
+                    >
+                      {c.isFreeMode ? "Free" : "Paid"}
+                    </button>
+                  </td>
                   <td style={{ color: "#64748b" }}>{c._count?.entitlements ?? 0} buyers / {c._count?.purchaseOrders ?? 0} orders</td>
                   <td>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                       <button className="icon-btn" title="Edit" onClick={() => { setEditTarget(c); setShowForm(true); setError(""); setSuccess(""); }}><EditIcon /></button>
-                      <button
-                        className="icon-btn"
-                        title={c.isImportant ? "Unmark Important" : "Mark as Important"}
-                        style={{ color: c.isImportant ? "#f59e0b" : "#94a3b8" }}
-                        onClick={async () => {
-                          try {
-                            const res = await fetch(`${API}/api/paid-notes/admin/update/${encodeURIComponent(c.noteKey)}`, {
-                              method: "PUT",
-                              headers: getAdminHeaders(),
-                              body: JSON.stringify({ isImportant: !c.isImportant }),
-                            });
-                            const data = await res.json();
-                            if (data.success) { setSuccess(`Marked as ${!c.isImportant ? "Important" : "Not Important"}.`); fetchConfigs(); }
-                            else setError(data.message);
-                          } catch { setError("Failed."); }
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill={c.isImportant ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                      </button>
                       <button className="icon-btn" title={c.isEnabled ? "Disable" : "Enable"} onClick={() => handleToggle(c)}>
                         {c.isEnabled ? (
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -231,6 +336,22 @@ function PaidNotesList() {
             </tbody>
           </table>
         </div>
+          )}
+
+      {modeConfirmTarget && (
+        <ConfirmModeModal
+          config={modeConfirmTarget}
+          onClose={() => setModeConfirmTarget(null)}
+          onConfirm={() => handleModeConfirm(modeConfirmTarget)}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onDone={() => setToast(null)}
+        />
       )}
     </div>
   );
@@ -258,6 +379,7 @@ function PaidNoteForm({ initial, onClose, onSaved, onError }) {
   const [title, setTitle] = useState(initial?.title || "");
   const [price, setPrice] = useState(initial?.price ?? "");
   const [isEnabled, setIsEnabled] = useState(initial?.isEnabled ?? true);
+  const [isFreeMode, setIsFreeMode] = useState(initial?.isFreeMode ?? false);
   const [saving, setSaving] = useState(false);
 
   const buildNoteKey = () => {
@@ -281,7 +403,7 @@ function PaidNoteForm({ initial, onClose, onSaved, onError }) {
     setSaving(true);
     try {
       const noteKey = buildNoteKey();
-      const body = { title: title.trim(), price: parsedPrice, isEnabled };
+      const body = { title: title.trim(), price: parsedPrice, isEnabled, isFreeMode };
       if (!isEdit) body.noteKey = noteKey;
 
       const url = isEdit
@@ -374,6 +496,14 @@ function PaidNoteForm({ initial, onClose, onSaved, onError }) {
               <option value="disabled">Disabled</option>
             </select>
           </div>
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">Access Mode</label>
+          <select className="form-select" value={isFreeMode ? "free" : "paid"} onChange={(e) => setIsFreeMode(e.target.value === "free")}>
+            <option value="paid">Paid — users must purchase to access</option>
+            <option value="free">Free — open access like regular notes</option>
+          </select>
         </div>
 
         <button type="submit" className="submit-btn" disabled={saving} style={{ marginTop: "0.5rem" }}>
