@@ -8,6 +8,7 @@ import Search from "./pages/Search";
 import PaidNotesManager from "./pages/PaidNotesManager";
 import CouponsManager from "./pages/CouponsManager";
 import DeviceRecovery from "./pages/DeviceRecovery";
+import UsersManager from "./pages/UsersManager";
 import "./pages/pages.css";
 
 export default function App() {
@@ -35,6 +36,7 @@ const renderPage = () => {
     if (page === "paid-notes") return <PaidNotesManager />;
     if (page === "coupons") return <CouponsManager />;
     if (page === "recovery") return <DeviceRecovery />;
+    if (page === "users") return <UsersManager />;
     return <AdminPanel />;
   };
 return (
