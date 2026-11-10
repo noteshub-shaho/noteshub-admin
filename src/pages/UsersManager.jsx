@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./pages.css";
 
 const API = import.meta.env.VITE_API_URL;
@@ -57,6 +57,7 @@ export default function UsersManager() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
+  const debounceRef = useRef(null);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
   const fetchUsers = useCallback(async (currentPage, currentSearch) => {
@@ -84,16 +85,21 @@ export default function UsersManager() {
     fetchUsers(page, search);
   }, [page, search, fetchUsers]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-    setSearch(searchInput.trim());
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setSearchInput(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(1);
+      setSearch(val.trim());
+    }, 300);
   };
 
   const handleClear = () => {
     setSearchInput("");
     setSearch("");
     setPage(1);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
   };
 
   return (
@@ -106,7 +112,7 @@ export default function UsersManager() {
       </div>
 
       <div className="users-toolbar">
-        <form onSubmit={handleSearch} className="users-search-form">
+        <div className="users-search-form">
           <div className="users-search-input-wrap">
             <svg className="users-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -115,7 +121,7 @@ export default function UsersManager() {
               className="users-search-input"
               placeholder="Search by name, email, or user ID"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={handleInputChange}
             />
             {searchInput && (
               <button className="users-search-clear" type="button" onClick={handleClear} title="Clear">
@@ -125,8 +131,7 @@ export default function UsersManager() {
               </button>
             )}
           </div>
-          <button className="submit-btn users-search-btn" type="submit">Search</button>
-        </form>
+        </div>
         <button className="icon-btn" onClick={() => fetchUsers(page, search)} title="Refresh">
           <RefreshIcon />
         </button>

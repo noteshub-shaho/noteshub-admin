@@ -13,6 +13,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    key: "users",
+    label: "Users",
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    ),
+  },
+  {
     key: "coupons",
     label: "Coupons",
     icon: (
@@ -62,16 +72,6 @@ const NAV_ITEMS = [
     ),
   },
   {
-    key: "users",
-    label: "Users",
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-    ),
-  },
-  {
     key: "supabase",
     label: "Supabase",
     icon: (
@@ -87,9 +87,9 @@ const NAV_ITEMS = [
 const Sidebar = ({ activePage, isOpen, onNavigate, onLogout }) => {
   return (
     <aside className={`sidebar${isOpen ? " open" : ""}`}>
-<div className="sidebar-brand">
+      <div className="sidebar-brand">
         <div className="sidebar-brand-row">
-         <img src={logo} alt="NotesHub" style={{ height: "28px", width: "auto", borderRadius: "5px" }} />
+          <img src={logo} alt="NotesHub" style={{ height: "28px", width: "auto", borderRadius: "5px" }} />
         </div>
         <span className="sidebar-badge">Admin Panel</span>
       </div>
@@ -105,7 +105,6 @@ const Sidebar = ({ activePage, isOpen, onNavigate, onLogout }) => {
           </button>
         ))}
       </nav>
-
       <div className="sidebar-footer">
         <button onClick={onLogout} className="logout-btn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
